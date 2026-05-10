@@ -251,27 +251,25 @@ npx playwright show-report
 
 ## Deployment
 
-The backend is deployed to **Render** and the frontend to **Netlify**.
-
-**Live backend URL:** `https://queuecare-2.onrender.com`
+**Live backend:** `https://queuecare-2.onrender.com`  
+**Live frontend:** `https://queuecares.netlify.app`
 
 ---
 
-### Deploy the Backend to Render
+### How They Are Connected
 
-1. Go to [render.com](https://render.com) and sign in
-2. Click **New → Web Service**
-3. Connect your GitHub repo
-4. Set these values:
+The frontend calls the backend using `VITE_API_URL`. The backend allows requests from the frontend using `CLIENT_URL` in the CORS config. Both are set as environment variables on their respective platforms.
 
-| Setting | Value |
-|---|---|
-| **Root Directory** | `backend` |
-| **Runtime** | `Node` |
-| **Build Command** | `npm install` |
-| **Start Command** | `npm start` |
+| Platform | Service | Environment Variable | Value |
+|---|---|---|---|
+| Netlify | Frontend | `VITE_API_URL` | `https://queuecare-2.onrender.com` |
+| Render | Backend | `CLIENT_URL` | `https://queuecares.netlify.app` |
 
-5. Under **Environment Variables**, add these (copy the exact values from `backend/.env`):
+---
+
+### Render — Backend Environment Variables
+
+Go to your Render service → **Environment** and make sure these are set:
 
 | Key | Value |
 |---|---|
@@ -279,64 +277,45 @@ The backend is deployed to **Render** and the frontend to **Netlify**.
 | `PORT` | `10000` |
 | `MONGODB_URI` | The Atlas connection string from `backend/.env` |
 | `JWT_SECRET` | The JWT secret from `backend/.env` |
-| `CLIENT_URL` | Your Netlify URL — set this after step 2 below (e.g. `https://your-app.netlify.app`) |
+| `CLIENT_URL` | `https://queuecares.netlify.app` |
 
-6. Click **Create Web Service**
-
-Your backend URL will be something like `https://queuecare-2.onrender.com`. Copy it.
-
-> Free tier Render services sleep after 15 minutes of inactivity. The first request after a sleep takes 30–60 seconds. Just wait and retry.
+After saving, Render will redeploy automatically.
 
 ---
 
-### Deploy the Frontend to Netlify
+### Netlify — Frontend Environment Variables
 
-1. Go to [netlify.com](https://netlify.com) and sign in
-2. Click **Add new site → Import an existing project**
-3. Connect your GitHub repo
-4. Set these values:
-
-| Setting | Value |
-|---|---|
-| **Base directory** | `frontend` |
-| **Build command** | `npm run build` |
-| **Publish directory** | `frontend/dist` |
-
-5. Under **Environment Variables**, add:
+Go to your Netlify site → **Site configuration → Environment variables** and make sure this is set:
 
 | Key | Value |
 |---|---|
 | `VITE_API_URL` | `https://queuecare-2.onrender.com` |
 
-6. Click **Deploy site**
-
-Netlify gives you a URL like `https://your-app.netlify.app`.
+After saving, trigger a new deploy from **Deploys → Trigger deploy**.
 
 ---
 
-### Final Step — Connect the Two
+### Netlify — Build Settings
 
-Once both are deployed:
-
-1. Go back to your Render service → **Environment**
-2. Set `CLIENT_URL` to your Netlify URL (e.g. `https://your-app.netlify.app`)
-3. Click **Save Changes** — Render redeploys automatically
-
-The app is now fully live.
-
----
-
-### Run API Tests Against the Live Backend
-
-A separate Postman environment file is included for testing against production:
-
-```bash
-newman run tests/api/QueueCare.postman_collection.json \
-  --environment tests/api/QueueCare.postman_environment.production.json
-```
+| Setting | Value |
+|---|---|
+| Base directory | `frontend` |
+| Build command | `npm run build` |
+| Publish directory | `frontend/dist` |
 
 ---
 
 ### Why Cookies Work in Production
 
 The frontend (Netlify) and backend (Render) are on different domains. For cookies to work cross-domain, the backend sets them with `secure: true` and `sameSite: 'none'` in production. Locally it uses `sameSite: 'lax'` and `secure: false` so they work without HTTPS.
+
+---
+
+### Run API Tests Against the Live Backend
+
+```bash
+newman run tests/api/QueueCare.postman_collection.json \
+  --environment tests/api/QueueCare.postman_environment.production.json
+```
+
+> The free Render tier sleeps after 15 minutes of inactivity. The first request after a sleep takes about 60 seconds. Just wait and retry.
