@@ -1,0 +1,17 @@
+# Dependencies — installed via npm install
+node_modules/
+
+# Playwright generated output
+test-results/
+playwright-report/
+
+# Lock file (generated)
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db

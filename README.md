@@ -1,213 +1,6 @@
 # QueueCare
 
-A clinic appointment and queue management system built for a QA Engineering technical assessment.
-
----
-
-## Prerequisites
-
-| Requirement | Version | Notes |
-|---|---|---|
-| Node.js | 18 or higher | `node --version` to check |
-| npm | 9 or higher | Comes with Node.js |
-| Newman | 6 or higher | For running API tests from the terminal |
-| Playwright browsers | Chromium | Installed via `npx playwright install` |
-| MongoDB | Atlas (cloud) | Connection string is pre-configured in `Backend/.env` |
-| Browser | Any modern browser | For manual use of the app |
-
----
-
-## Environment Variables
-
-Both `.env` files are included in the repo and pre-configured. No changes are needed to run the project locally.
-
-### Backend — `Backend/.env`
-
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `5000` | Port the Express server listens on |
-| `MONGODB_URI` | *(Atlas URI)* | MongoDB connection string |
-| `JWT_SECRET` | `queuecare_secret_2024` | Secret used to sign and verify JWTs |
-| `CLIENT_URL` | `http://localhost:5173` | React app origin, used for CORS |
-
-### Frontend — `Frontend/.env`
-
-| Variable | Default | Description |
-|---|---|---|
-| `VITE_API_URL` | `http://localhost:5000` | Base URL of the Express API |
-
-If you change `PORT` in the backend `.env`, update `VITE_API_URL` and `CLIENT_URL` to match.
-
----
-
-## Install Dependencies
-
-Run these once after cloning.
-
-```bash
-# Backend
-cd Backend
-npm install
-
-# Frontend
-cd ../Frontend
-npm install
-```
-
----
-
-## Start the Application
-
-You need two terminals running at the same time.
-
-**Terminal 1 — Backend:**
-
-```bash
-cd Backend
-npm run dev
-```
-
-The API will be available at `http://localhost:5000`.
-
-**Terminal 2 — Frontend:**
-
-```bash
-cd Frontend
-npm run dev
-```
-
-The app will be available at `http://localhost:5173`. Open that URL in your browser.
-
-Both servers must be running before you run any tests.
-
----
-
-## Default Test Credentials
-
-These three accounts are used by both the API tests and the UI tests. Register them once before running any test suite.
-
-| Role | Email | Password |
-|---|---|---|
-| Patient | `patient@test.com` | `Password123` |
-| Staff | `staff@test.com` | `Password123` |
-| Second Patient | `patient2@test.com` | `Password123` |
-
-**Register all three accounts** by running these commands with the backend server running:
-
-```bash
-# Patient
-curl -s -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"Test Patient\",\"email\":\"patient@test.com\",\"password\":\"Password123\",\"role\":\"patient\"}"
-
-# Staff
-curl -s -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"Test Staff\",\"email\":\"staff@test.com\",\"password\":\"Password123\",\"role\":\"staff\"}"
-
-# Second Patient
-curl -s -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"Patient Two\",\"email\":\"patient2@test.com\",\"password\":\"Password123\",\"role\":\"patient\"}"
-```
-
-Each command returns `201 Created` on first run, or `409 Conflict` if the account already exists — both are fine.
-
-On Windows (PowerShell), use this form instead:
-
-```powershell
-Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" `
-  -Method POST -ContentType "application/json" `
-  -Body '{"name":"Test Patient","email":"patient@test.com","password":"Password123","role":"patient"}'
-```
-
----
-
-## Run API Tests (Newman)
-
-### Install Newman
-
-```bash
-npm install -g newman
-```
-
-### Run the full suite
-
-From the project root, with the backend server running:
-
-```bash
-newman run tests/api/QueueCare.postman_collection.json \
-  --environment tests/api/QueueCare.postman_environment.json
-```
-
-On Windows:
-
-```powershell
-newman run tests/api/QueueCare.postman_collection.json --environment tests/api/QueueCare.postman_environment.json
-```
-
-**What to expect:** 33 requests, ~68 assertions. There will be failures — see `TEST_REPORT.md` for a full explanation of each one.
-
-### Run a single folder
-
-```bash
-newman run tests/api/QueueCare.postman_collection.json \
-  --environment tests/api/QueueCare.postman_environment.json \
-  --folder "Auth - Negative"
-```
-
-Available folders: `Setup`, `Auth - Negative`, `Appointments - Happy Path`, `Appointments - Negative`, `Appointments - Edge Cases`, `Queue`
-
-### Run via Postman (manual)
-
-1. Open Postman desktop
-2. Import `tests/api/QueueCare.postman_collection.json`
-3. Import `tests/api/QueueCare.postman_environment.json`
-4. Select the **QueueCare Environment** from the environment dropdown
-5. Open the collection and click **Run collection**
-
----
-
-## Run UI Tests (Playwright)
-
-The frontend dev server must be running on port 5173 before running UI tests. The backend must also be running.
-
-### Install Playwright browsers (first time only)
-
-```bash
-cd Frontend
-npx playwright install chromium
-```
-
-### Run the full UI test suite
-
-```bash
-cd Frontend
-npx playwright test
-```
-
-### Run with a visible browser (headed mode)
-
-```bash
-cd Frontend
-npx playwright test --headed
-```
-
-### Run a single test file
-
-```bash
-cd Frontend
-npx playwright test tests/ui/appointments.spec.js
-```
-
-### View the HTML report after a run
-
-```bash
-cd Frontend
-npx playwright show-report
-```
-
-**What to expect:** ~15 scenarios across 5 groups. Tests require the three test accounts to exist in the database (see Default Test Credentials above).
+QueueCare is a clinic appointment and queue management system. Patients book appointments and get a queue number. Staff see the full queue and mark patients as served. Built as a QA Engineering technical assessment.
 
 ---
 
@@ -215,63 +8,241 @@ npx playwright show-report
 
 ```
 queuecare/
-├── Backend/
-│   ├── src/
-│   │   ├── routes/         # auth.js, appointments.js, queue.js
-│   │   ├── middleware/     # authenticate.js, requireRole.js
-│   │   ├── models/         # User.js, Appointment.js
-│   │   ├── lib/            # db.js, auth.js
-│   │   └── app.js
-│   ├── .env
-│   └── package.json
-│
-├── Frontend/
-│   ├── src/
-│   │   ├── pages/          # Login, Register, Dashboard, NewAppointment,
-│   │   │                   # AppointmentDetail, EditAppointment, QueueView
-│   │   ├── components/     # Layout.jsx, AppointmentCard.jsx
-│   │   └── lib/            # api.js, AuthContext.jsx
-│   ├── tests/
-│   │   └── ui/
-│   │       └── appointments.spec.js
-│   ├── .env
-│   ├── playwright.config.js
-│   └── package.json
-│
+├── backend/          # Node.js + Express REST API
+├── frontend/         # React + Vite web app
 ├── tests/
-│   └── api/
-│       ├── QueueCare.postman_collection.json
-│       └── QueueCare.postman_environment.json
-│
+│   ├── api/          # Postman collection and environment file
+│   └── ui/           # Playwright end-to-end tests
 ├── README.md
 └── TEST_REPORT.md
 ```
 
+Note: `node_modules/` folders are gitignored. They get created when you run `npm install` in each folder.
+
 ---
 
-## API Reference
+## What You Need Before Starting
+
+Make sure you have these installed on your machine:
+
+| Tool | Minimum Version | How to check |
+|---|---|---|
+| Node.js | 18 | `node --version` |
+| npm | 9 | `npm --version` |
+| Newman | 6 | `newman --version` |
+
+MongoDB is already set up on Atlas. The connection string is in `backend/.env` — you don't need to install anything for the database.
+
+---
+
+## Environment Variables
+
+Both `.env` files are already in the repo and ready to use. You don't need to change anything to run the project locally.
+
+**backend/.env**
+
+| Variable | Value | What it does |
+|---|---|---|
+| `PORT` | `5000` | The port the API runs on |
+| `MONGODB_URI` | Atlas connection string | Connects to the cloud database |
+| `JWT_SECRET` | `queuecare_secret_2024` | Signs and verifies login tokens |
+| `CLIENT_URL` | `http://localhost:5173` | Tells the API which frontend origin to allow |
+
+**frontend/.env**
+
+| Variable | Value | What it does |
+|---|---|---|
+| `VITE_API_URL` | `http://localhost:5000` | The URL the frontend uses to talk to the API |
+
+---
+
+## Installation
+
+Run these commands once after cloning the repo. Do them in order.
+
+```bash
+# Install backend packages
+cd backend
+npm install
+
+# Install frontend packages
+cd ../frontend
+npm install
+
+# Go back to the root and install the Playwright test runner
+cd ..
+npm install
+
+# Download the Chromium browser that Playwright uses for UI tests
+npx playwright install chromium
+```
+
+---
+
+## Running the App
+
+You need two terminals open at the same time — one for the backend, one for the frontend.
+
+**Terminal 1 — start the API:**
+```bash
+cd backend
+npm run dev
+```
+The API will be running at `http://localhost:5000`
+
+**Terminal 2 — start the web app:**
+```bash
+cd frontend
+npm run dev
+```
+The app will be running at `http://localhost:5173`
+
+Open `http://localhost:5173` in your browser. Keep both terminals running while you use the app or run tests.
+
+---
+
+## Test Accounts
+
+Three accounts are needed to run the tests. You only need to create them once. The backend must be running when you do this.
+
+| Role | Email | Password |
+|---|---|---|
+| Patient | `patient@test.com` | `Password123` |
+| Staff | `staff@test.com` | `Password123` |
+| Second Patient | `patient2@test.com` | `Password123` |
+
+**Mac / Linux — run these in your terminal:**
+
+```bash
+curl -s -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Patient","email":"patient@test.com","password":"Password123","role":"patient"}'
+
+curl -s -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Staff","email":"staff@test.com","password":"Password123","role":"staff"}'
+
+curl -s -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Patient Two","email":"patient2@test.com","password":"Password123","role":"patient"}'
+```
+
+**Windows PowerShell:**
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" -Method POST `
+  -ContentType "application/json" `
+  -Body '{"name":"Test Patient","email":"patient@test.com","password":"Password123","role":"patient"}'
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" -Method POST `
+  -ContentType "application/json" `
+  -Body '{"name":"Test Staff","email":"staff@test.com","password":"Password123","role":"staff"}'
+
+Invoke-RestMethod -Uri "http://localhost:5000/api/auth/register" -Method POST `
+  -ContentType "application/json" `
+  -Body '{"name":"Patient Two","email":"patient2@test.com","password":"Password123","role":"patient"}'
+```
+
+Each command returns `201 Created` the first time. If you run it again it returns `409 Conflict` because the account already exists — that's fine, just move on.
+
+---
+
+## Running the API Tests
+
+The API tests use Newman (the command-line runner for Postman). The backend must be running.
+
+**Install Newman if you haven't already:**
+```bash
+npm install -g newman
+```
+
+**Run the full test suite from the project root:**
+```bash
+newman run tests/api/QueueCare.postman_collection.json \
+  --environment tests/api/QueueCare.postman_environment.json
+```
+
+Windows PowerShell:
+```powershell
+newman run tests/api/QueueCare.postman_collection.json --environment tests/api/QueueCare.postman_environment.json
+```
+
+Or use the shortcut:
+```bash
+npm run test:api
+```
+
+**What to expect:** 33 requests run, around 68–70 assertions checked. There will be some failures — they are real bugs that were found during testing. See `TEST_REPORT.md` for the full explanation.
+
+**Run just one folder if you want to focus on a specific area:**
+```bash
+newman run tests/api/QueueCare.postman_collection.json \
+  --environment tests/api/QueueCare.postman_environment.json \
+  --folder "Auth - Negative"
+```
+
+The available folders are: `Setup`, `Auth - Negative`, `Appointments - Happy Path`, `Appointments - Negative`, `Appointments - Edge Cases`, `Queue`
+
+**Run manually in Postman:**
+1. Open Postman
+2. Click Import and select `tests/api/QueueCare.postman_collection.json`
+3. Import `tests/api/QueueCare.postman_environment.json` the same way
+4. Select **QueueCare Environment** from the environment dropdown (top right)
+5. Open the collection and click **Run collection**
+
+---
+
+## Running the UI Tests
+
+The UI tests use Playwright and run in a headless Chromium browser. Both the backend and frontend must be running before you start these.
+
+**Run all 16 UI tests from the project root:**
+```bash
+npm run test:ui
+```
+
+Or directly:
+```bash
+npx playwright test --config frontend/playwright.config.js
+```
+
+**Watch the browser while tests run:**
+```bash
+npx playwright test --config frontend/playwright.config.js --headed
+```
+
+**Open the HTML report after a run:**
+```bash
+npx playwright show-report
+```
+
+**What to expect:** 16 tests across 5 groups. All should pass. The tests cover login, creating appointments, cancelling, role-based dashboard views, and the appointment detail page.
+
+---
+
+## API Endpoints
 
 ### Auth
 
-| Method | Path | Auth | Description |
+| Method | Path | Who can call it | What it does |
 |---|---|---|---|
-| POST | `/api/auth/register` | None | Register a new user |
-| POST | `/api/auth/login` | None | Login, sets httpOnly cookie |
-| POST | `/api/auth/logout` | Cookie | Clears the auth cookie |
+| POST | `/api/auth/register` | Anyone | Create a new account |
+| POST | `/api/auth/login` | Anyone | Log in, sets a session cookie |
+| POST | `/api/auth/logout` | Logged-in users | Log out, clears the cookie |
 
 ### Appointments
 
-| Method | Path | Auth | Description |
+| Method | Path | Who can call it | What it does |
 |---|---|---|---|
-| POST | `/api/appointments` | Patient | Create an appointment |
-| GET | `/api/appointments` | Any | List appointments (filtered by role) |
-| GET | `/api/appointments/:id` | Any | Get a single appointment |
-| PUT | `/api/appointments/:id` | Patient | Update own appointment |
-| DELETE | `/api/appointments/:id` | Patient | Cancel own appointment |
-| PATCH | `/api/appointments/:id/serve` | Staff | Mark appointment as served |
+| POST | `/api/appointments` | Patients only | Book a new appointment |
+| GET | `/api/appointments` | Logged-in users | List appointments (patients see their own, staff see all) |
+| GET | `/api/appointments/:id` | Logged-in users | Get one appointment by ID |
+| PUT | `/api/appointments/:id` | Patients only | Update their own pending appointment |
+| DELETE | `/api/appointments/:id` | Patients only | Cancel their own appointment |
+| PATCH | `/api/appointments/:id/serve` | Staff only | Mark a patient as served |
 
 ### Queue
 
-| Method | Path | Auth | Description |
+| Method | Path | Who can call it | What it does |
 |---|---|---|---|
-| GET | `/api/queue/today` | Any | Today's queue, sorted by queue number. Accepts optional `?date=YYYY-MM-DD` |
+| GET | `/api/queue/today` | Logged-in users | Get today's full queue sorted by queue number. Add `?date=YYYY-MM-DD` to query a specific date |

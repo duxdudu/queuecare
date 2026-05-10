@@ -1,0 +1,12 @@
+{
+  "name": "queuecare",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:api": "newman run tests/api/QueueCare.postman_collection.json --environment tests/api/QueueCare.postman_environment.json",
+    "test:ui": "playwright test --config frontend/playwright.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1"
+  }
+}
