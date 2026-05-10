@@ -251,7 +251,9 @@ npx playwright show-report
 
 ## Deployment
 
-The backend deploys to **Render** and the frontend deploys to **Netlify**. Deploy the backend first so you have the API URL before configuring the frontend.
+The backend is deployed to **Render** and the frontend to **Netlify**.
+
+**Live backend URL:** `https://queuecare-2.onrender.com`
 
 ---
 
@@ -269,20 +271,21 @@ The backend deploys to **Render** and the frontend deploys to **Netlify**. Deplo
 | **Build Command** | `npm install` |
 | **Start Command** | `npm start` |
 
-5. Under **Environment Variables**, add these:
+5. Under **Environment Variables**, add these (copy the exact values from `backend/.env`):
 
 | Key | Value |
 |---|---|
 | `NODE_ENV` | `production` |
-| `MONGODB_URI` | Your MongoDB Atlas connection string |
-| `JWT_SECRET` | A long random string (e.g. 32+ characters) |
-| `CLIENT_URL` | Your Netlify URL — add this after you deploy the frontend (e.g. `https://your-app.netlify.app`) |
+| `PORT` | `10000` |
+| `MONGODB_URI` | The Atlas connection string from `backend/.env` |
+| `JWT_SECRET` | The JWT secret from `backend/.env` |
+| `CLIENT_URL` | Your Netlify URL — set this after step 2 below (e.g. `https://your-app.netlify.app`) |
 
 6. Click **Create Web Service**
 
-Render will give you a URL like `https://queuecare-api.onrender.com`. Copy it — you need it for the frontend.
+Your backend URL will be something like `https://queuecare-2.onrender.com`. Copy it.
 
-> Note: Free tier Render services spin down after inactivity. The first request after a sleep takes 30–60 seconds to respond.
+> Free tier Render services sleep after 15 minutes of inactivity. The first request after a sleep takes 30–60 seconds. Just wait and retry.
 
 ---
 
@@ -303,27 +306,37 @@ Render will give you a URL like `https://queuecare-api.onrender.com`. Copy it �
 
 | Key | Value |
 |---|---|
-| `VITE_API_URL` | Your Render backend URL (e.g. `https://queuecare-api.onrender.com`) |
+| `VITE_API_URL` | `https://queuecare-2.onrender.com` |
 
 6. Click **Deploy site**
 
-Netlify will give you a URL like `https://your-app.netlify.app`.
+Netlify gives you a URL like `https://your-app.netlify.app`.
 
 ---
 
-### Final Step — Connect Frontend to Backend
+### Final Step — Connect the Two
 
 Once both are deployed:
 
-1. Go back to your Render service
-2. Open **Environment** settings
-3. Set `CLIENT_URL` to your Netlify URL (e.g. `https://your-app.netlify.app`)
-4. Click **Save Changes** — Render will redeploy automatically
+1. Go back to your Render service → **Environment**
+2. Set `CLIENT_URL` to your Netlify URL (e.g. `https://your-app.netlify.app`)
+3. Click **Save Changes** — Render redeploys automatically
 
-After that, both services are connected and the app is fully live.
+The app is now fully live.
+
+---
+
+### Run API Tests Against the Live Backend
+
+A separate Postman environment file is included for testing against production:
+
+```bash
+newman run tests/api/QueueCare.postman_collection.json \
+  --environment tests/api/QueueCare.postman_environment.production.json
+```
 
 ---
 
 ### Why Cookies Work in Production
 
-In production the backend sets cookies with `secure: true` and `sameSite: 'none'`. This is required when the frontend (Netlify) and backend (Render) are on different domains. Locally, cookies use `sameSite: 'lax'` and `secure: false` so they work without HTTPS.
+The frontend (Netlify) and backend (Render) are on different domains. For cookies to work cross-domain, the backend sets them with `secure: true` and `sameSite: 'none'` in production. Locally it uses `sameSite: 'lax'` and `secure: false` so they work without HTTPS.
