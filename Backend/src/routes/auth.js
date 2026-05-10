@@ -77,11 +77,15 @@ router.post("/login", async (req, res) => {
     // Sign JWT
     const token = signToken({ id: user._id, role: user.role });
 
-    // Set cookie
+    // Cookie settings differ between local dev and production.
+    // In production (Render + Netlify) the cookie must be secure and
+    // sameSite: 'none' so it works across different domains.
+    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie("token", token, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
+      secure: isProduction,
     });
 
     // Return user without password and include token for API testing
@@ -102,7 +106,11 @@ router.post("/login", async (req, res) => {
 
 // POST /api/auth/logout
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.clearCookie("token", {
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+  });
   res.status(200).json({ message: "Logged out" });
 });
 

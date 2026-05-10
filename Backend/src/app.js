@@ -12,11 +12,14 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// Middleware
+const isProduction = process.env.NODE_ENV === 'production';
+
+// CORS — allow the frontend origin (set CLIENT_URL env var on Render)
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -27,8 +30,9 @@ app.use('/api/queue', queueRoutes);
 
 // Start server only when run directly
 if (require.main === module) {
-  app.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`);
+  const port = process.env.PORT || 5000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
   });
 }
 
