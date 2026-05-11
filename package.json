@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "start": "node backend/src/app.js",
+    "build": "echo 'No root build needed'",
     "test:api": "newman run tests/api/QueueCare.postman_collection.json --environment tests/api/QueueCare.postman_environment.json",
     "test:ui": "playwright test --config frontend/playwright.config.js"
   },
