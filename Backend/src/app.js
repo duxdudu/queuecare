@@ -12,8 +12,6 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-const isProduction = process.env.NODE_ENV === 'production';
-
 // CORS — allow the frontend origin (set CLIENT_URL env var on Render)
 app.use(cors({
   origin: process.env.CLIENT_URL,
