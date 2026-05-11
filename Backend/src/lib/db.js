@@ -6,7 +6,8 @@ async function connectDB() {
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
-    throw error;
+    // Don't throw — let the server start so Render health checks pass.
+    // Individual requests will fail with 500 if DB is unavailable.
   }
 }
 
